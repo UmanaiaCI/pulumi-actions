@@ -1,13 +1,12 @@
 import { resolve } from 'path';
 import * as core from '@actions/core';
+import { context } from '@actions/github';
 import {
-  ConfigMap,
   LocalProgramArgs,
   LocalWorkspace,
   LocalWorkspaceOptions,
 } from '@pulumi/pulumi/automation';
 import invariant from 'ts-invariant';
-import YAML from 'yaml';
 import { Commands, makeConfig } from './config';
 import { environmentVariables } from './libs/envs';
 import { handlePullRequestMessage } from './libs/pr';
@@ -18,7 +17,7 @@ const main = async () => {
   const config = await makeConfig();
   core.debug('Configuration is loaded');
 
-  await pulumiCli.downloadCli(config.options.pulumiVersion);
+  await pulumiCli.downloadCli(config.pulumiVersion);
   await login(config.cloudUrl, environmentVariables.PULUMI_ACCESS_TOKEN);
 
   const workDir = resolve(
@@ -49,9 +48,8 @@ const main = async () => {
     core.info(msg);
   };
 
-  if (config.configMap != '') {
-    const configMap: ConfigMap = YAML.parse(config.configMap);
-    await stack.setAllConfig(configMap);
+  if (config.configMap) {
+    await stack.setAllConfig(config.configMap);
   }
 
   if (config.refresh) {
@@ -93,14 +91,17 @@ const main = async () => {
     }
   }
 
-  if (config.commentOnPr && config.isPullRequest) {
-    core.debug(`Commenting on pull request`);
-    invariant(config.githubToken, 'github-token is missing.');
-    handlePullRequestMessage(config, projectName, output);
+  if (config.commentOnPr) {
+    const isPullRequest = context.payload.pull_request !== undefined;
+    if (isPullRequest) {
+      core.debug(`Commenting on pull request`);
+      invariant(config.githubToken, 'github-token is missing.');
+      handlePullRequestMessage(config, projectName, output);
+    }
   }
 
   if (config.remove && config.command === 'destroy') {
-    stack.workspace.removeStack(stack.name)
+    stack.workspace.removeStack(stack.name);
   }
 
   core.endGroup();
