@@ -89,7 +89,7 @@ describe('pr.ts', () => {
       command: 'preview',
       stackName: 'staging',
       commentOnPrNumber: 123,
-      options: { editCommentOnPr: true },
+      editCommentOnPr: true,
     } as Config;
 
 
