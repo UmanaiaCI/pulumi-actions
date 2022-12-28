@@ -7,6 +7,7 @@ import {
   getYAMLInput,
 } from 'actions-parsers';
 import * as rt from 'runtypes';
+import { parseSemicolorToArray } from './libs/utils';
 
 const configValueRt = rt.Dictionary(
   rt.Record({
@@ -44,11 +45,13 @@ export async function makeConfig() {
       message: getInput('message'),
       expectNoChanges: getBooleanInput('expect-no-changes'),
       diff: getBooleanInput('diff'),
-      replace: getMultilineInput('replace'),
-      target: getMultilineInput('target'),
+      replace: parseSemicolorToArray(getMultilineInput('replace')),
+      target: parseSemicolorToArray(getMultilineInput('target')),
       targetDependents: getBooleanInput('target-dependents'),
-      policyPacks: getMultilineInput('policyPacks'),
-      policyPackConfigs: getMultilineInput('policyPackConfigs'),
+      policyPacks: parseSemicolorToArray(getMultilineInput('policyPacks')),
+      policyPackConfigs: parseSemicolorToArray(
+        getMultilineInput('policyPackConfigs'),
+      ),
       userAgent: 'pulumi/actions@v3',
     },
   };
