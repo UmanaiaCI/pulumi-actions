@@ -41185,8 +41185,8 @@ function registerResource(res, parent, t, name, custom, remote, newDependency, p
         req.setReplaceonchangesList(opts.replaceOnChanges || []);
         req.setPlugindownloadurl(opts.pluginDownloadURL || "");
         req.setRetainondelete(opts.retainOnDelete || false);
-        req.setDeletedwith(opts.deletedWith);
-        if (opts.deletedWith && !(yield settings_1.monitorSupportsDeletedWith())) {
+        req.setDeletedwith(resop.deletedWithURN || "");
+        if (resop.deletedWithURN && !(yield settings_1.monitorSupportsDeletedWith())) {
             throw new Error("The Pulumi CLI does not support the DeletedWith option. Please update the Pulumi CLI.");
         }
         const customTimeouts = new resproto.RegisterResourceRequest.CustomTimeouts();
@@ -41429,6 +41429,7 @@ function prepareResource(label, res, parent, custom, remote, props, opts, type, 
                     aliases.push(aliasVal);
                 }
             }
+            const deletedWithURN = (opts === null || opts === void 0 ? void 0 : opts.deletedWith) ? yield opts.deletedWith.urn.promise() : undefined;
             return {
                 resolveURN: resolveURN,
                 resolveID: resolveID,
@@ -41442,6 +41443,7 @@ function prepareResource(label, res, parent, custom, remote, props, opts, type, 
                 aliases: aliases,
                 import: importID,
                 monitorSupportsStructuredAliases,
+                deletedWithURN,
             };
         }
         finally {
@@ -81951,7 +81953,7 @@ const options = lib.Partial({
     policyPackConfigs: lib.Array(lib.String),
     targetDependents: lib.Boolean,
     editCommentOnPr: lib.Boolean,
-    userAgent: lib.Literal('pulumi/actions@v3'),
+    userAgent: lib.Literal('pulumi/actions@v4'),
     pulumiVersion: lib.String,
 });
 const config = lib.Record({
@@ -82003,7 +82005,7 @@ function makeConfig() {
                 policyPacks: parseArray((0,core.getInput)('policyPacks')),
                 policyPackConfigs: parseArray((0,core.getInput)('policyPackConfigs')),
                 editCommentOnPr: parseBoolean((0,core.getInput)('edit-pr-comment')),
-                userAgent: 'pulumi/actions@v3',
+                userAgent: 'pulumi/actions@v4',
                 pulumiVersion: (0,core.getInput)('pulumi-version') || "^3",
                 color: (0,core.getInput)('color'),
             },

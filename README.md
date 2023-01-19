@@ -1,8 +1,5 @@
 # Pulumi GitHub Actions
 
-**PLEASE NOTE:** As of v3.1.0 of this GitHub Action, the end user no longer
-needs to install the Pulumi CLI as part of their workflow!
-
 Pulumi's GitHub Actions deploy apps and infrastructure to your cloud of choice,
 using just your favorite language and GitHub. This includes previewing,
 validating, and collaborating on proposed deployments in the context of Pull
@@ -22,8 +19,8 @@ jobs:
     name: Preview
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: pulumi/actions@v3
+      - uses: actions/checkout@v3
+      - uses: pulumi/actions@v4
         with:
           command: preview
           stack-name: org-name/stack-name
@@ -71,22 +68,37 @@ The action can be configured with the following arguments:
 
 ### Extra options
 
-- `parallel` - (optional) Allow P resource operations to run in parallel at once
-  (1 for no parallelism). Defaults to unbounded.
+- `config-map` - (optional) Configuration of the stack. Format Yaml string:
+  `{<key | string>: {value: <value | string>, secret: <is_secret | boolean> },}`.
 
-- `message` - (optional) Optional message to associate with the update
-  operation.
-
-- `expect-no-changes` - (optional) Return an error if any changes occur during
-  this update.
+- `diff` - (optional) Display operation as a rich diff showing the overall
+  change.
 
 - `edit-pr-comment` - (optional) Edit previous PR comment instead of posting new
   one. **PLEASE NOTE:** that as of 3.2.0 of the Action, this now defaults to
   `true`. This is in an effort to reduce verbosity - if you want to have a
   comment per PR run, please ensure that you set this to `false`.
 
-- `diff` - (optional) Display operation as a rich diff showing the overall
-  change.
+- `expect-no-changes` - (optional) Return an error if any changes occur during
+  this update.
+
+- `message` - (optional) Optional message to associate with the update
+  operation.
+
+- `parallel` - (optional) Allow P resource operations to run in parallel at once
+  (1 for no parallelism). Defaults to unbounded.
+
+- `policy-pack` - (optional) Run one or more policy packs with the provided
+  `command`
+
+- `policy-pack-config` - (optional) Path(s) to JSON file(s) containing the
+  config for the policy pack with the corresponding "policy-pack" argument
+
+- `pulumi-version` - (optional) Install a specific version of the Pulumi CLI.
+  Defaults to "^3"
+
+- `remove` - (optional) Removes the target stack if all resources are destroyed.
+  Used only with `destroy` command.
 
 - `replace` - (optional) Specify resources to replace. Multiple resources can be
   specified one per line (example: `<value | string>,...`).
@@ -98,18 +110,11 @@ The action can be configured with the following arguments:
 - `target-dependents` - (optional) Allows updating of dependent targets
   discovered but not specified in target.
 
-- `config-map` - (optional) Configuration of the stack. Format Yaml string:
-  `{<key | string>: {value: <value | string>, secret: <is_secret | boolean> },}`.
-
 - `upsert` - (optional) Allows the creation of the specified stack if it
   currently doesn't exist. **PLEASE NOTE:** This will create a
   `Pulumi.<stack-name>.yaml` file that you will need to add back to source
   control as part of the action if you wish to perform any further tasks with
   that stack.
-- `remove` - (optional) Removes the target stack if all resources are destroyed.
-  Used only with `destroy` command.
-- `pulumi-version` - (optional) Install a specific version of the Pulumi CLI.
-  Defaults to "^3"
 
 By default, this action will try to authenticate Pulumi with the
 [Pulumi SaaS](https://app.pulumi.com/). If you have not specified a
@@ -152,7 +157,7 @@ We can see that `pet-name` is an output. To get the value of this output in the
 action, we would use code similar to the following:
 
 ```yaml
-- uses: pulumi/actions@v3
+- uses: pulumi/actions@v4
   id: pulumi
   env:
     PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE }}
@@ -194,7 +199,20 @@ the correct GitHub Marketplace actions that support it.
 - [NodeJS Runtime + Azure Blob Self Managed Backend](examples/nodejs-azure.yaml)
 - [NodeJS Runtime + Local File System Self Managed Backend](examples/nodejs-local.yaml)
 
-## Migrating from GitHub Action v1 (and beyond)?
+## Release Cadence
+
+As of `v3.18`, we are intending to move to a monthly cadence for minor releases.
+Minor releases will be published around the beginning of the month. We may cut a
+patch release instead, if the changes are small enough not to warrant a minor
+release. We will also cut patch releases periodically as needed to address bugs.
+
+## Migrating from v3
+
+v4 of the Pulumi Action updates the NodeJS runtime from Node 12 to Node 16.
+Users of GitHub Enterprise will have to upgrade to v3.4 or newer. All other
+users are unaffected.
+
+## Migrating from GitHub Action v1 and v2
 
 Here are some pointers when migrating from v1 to v2 of our GitHub Action.
 
@@ -228,19 +246,3 @@ with:
 - run: pip install -r requirements
   working-directory: infra
 ```
-
-## Release Cadence
-
-As of `v3.18`, we are intending to move to a monthly cadence for minor releases.
-Minor releases will be published around the beginning of the month. We may cut a
-patch release instead, if the changes are small enough not to warrant a minor
-release. We will also cut patch releases periodically as needed to address bugs.
-
-## Node 12 Support Ending 2023-01-18
-
-We intend this action to work for all GitHub users, both SaaS users and GitHub
-Enterprise users. As such, this action will continue to use Node 12 until all
-maintained versions of GitHub Enterprise have Node 16 support. This date is
-2023-01-18, when GitHub Enterprise v3.3 is sunset. After 2023-01-18, this action
-will upgrade to Node 16, and will no longer run on GitHub Actions runners
-without Node 16 support.

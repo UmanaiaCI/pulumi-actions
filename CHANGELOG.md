@@ -1,11 +1,21 @@
 # CHANGELOG
 
-- feat: Add deletion of stack after destroy (remove flag)
+## HEAD (Unreleased)
+
+_(none)_
 
 - feat: Add support for an `install` command, similar to
   [setup-pulumi](https://github.com/marketplace/actions/setup-pulumi)
 
 --
+
+## 4.0.0 (2023-19-01)
+
+- feat: Update Action runtime to NodeJS 16
+
+## 3.21.0 (2023-19-01)
+
+- feat: Add deletion of stack after destroy (remove flag)
 
 ## 3.20.0 (2022-11-10)
 
