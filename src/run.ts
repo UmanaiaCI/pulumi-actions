@@ -8,26 +8,19 @@ import {
 } from '@pulumi/pulumi/automation';
 import invariant from 'ts-invariant';
 import YAML from 'yaml';
-import { Commands, Config } from './config';
+import { Commands, Config, InstallationConfig } from './config';
 import { environmentVariables } from './libs/envs';
 import { handlePullRequestMessage } from './libs/pr';
 import * as pulumiCli from './libs/pulumi-cli';
 import { login } from './login';
 
-function downloadOnly(cmd: Commands): boolean {
-  return cmd === 'install';
+// installOnly is the main entrypoint of the program when the user
+// intends to install the Pulumi CLI without running additional commands.
+export const installOnly = async (config: InstallationConfig): Promise<void> => {
+  await pulumiCli.downloadCli(config.pulumiVersion);
 }
 
 export const runAction = async (config: Config): Promise<void> => {
-
-  await pulumiCli.downloadCli(config.options.pulumiVersion);
-
-  if(downloadOnly(config.command)) {
-    core.info("Pulumi has been successfully installed. Exiting.")
-    return;
-  }
-  core.info('Pulumi is going forward anyway!');
-
   await login(config.cloudUrl, environmentVariables.PULUMI_ACCESS_TOKEN);
 
   const workDir = resolve(
@@ -85,7 +78,6 @@ export const runAction = async (config: Config): Promise<void> => {
       onOutput(stderr);
       return stdout;
     },
-    install: () => Promise.reject("Unreachable code. If you encounter this error, please file a bug at https://github.com/pulumi/actions/issues/new/choose"), // unreachable.
   };
 
   core.debug(`Running action ${config.command}`);

@@ -1,21 +1,14 @@
 import * as pulumiCli from "../libs/pulumi-cli";
 import { login } from '../login';
-// import * as loginModule from '../login';
 
 const spy = jest.spyOn(pulumiCli, 'run');
-const loginSpy = jest.spyOn(require('../login'), 'login');
 
 const installConfig: Record<string, string> = {
-  command: 'install',
-  'stack-name': 'dev',
-  'work-dir': './',
-  'cloud-url': 'file://~',
-  'github-token': 'n/a',
-  'pulumi-version': '^3',
-  'comment-on-pr': 'false',
+  command: undefined,
+  pulumiVersion: "^4",
 };
 
-describe('main.downloadOnly', () => {
+describe('Config without a provided command', () => {
   let oldWorkspace = '';
   beforeEach(() => {
     spy.mockClear();
@@ -27,7 +20,8 @@ describe('main.downloadOnly', () => {
   afterEach(() => {
     process.env.GITHUB_WORKSPACE = oldWorkspace;
   });
-  it('should ensure nothing beyond downloadCli is executed', async () => {
+
+  it('should not be validated by makeConfig', async () => {
     jest.mock('@actions/core', () => ({
       getInput: jest.fn((name: string) => {
         return installConfig[name];
@@ -37,15 +31,22 @@ describe('main.downloadOnly', () => {
     jest.mock('@actions/github', () => ({
       context: {},
     }));
-    jest.mock('../libs/pulumi-cli', () => ({
-      downloadCli: jest.fn(),
-    }));
     const { makeConfig } = require('../config');
-    const { runAction } = jest.requireActual('../run');
-    const conf = await makeConfig();
+    await expect(makeConfig())
+      .rejects
+      .toThrow();
+  });
+
+  it('should be validated by makeInstallationConfig', async() => {
+    jest.mock('@actions/core', () => ({
+      getInput: jest.fn((name: string) => {
+        return installConfig[name];
+      }),
+      info: jest.fn(),
+    }));
+    const { makeInstallationConfig } = require('../config');
+    const conf = await makeInstallationConfig()
     expect(conf).toBeTruthy();
-    await runAction(conf);    
-    expect(loginSpy).not.toHaveBeenCalled();
   });
 });
 
